@@ -2,7 +2,9 @@ package calculator;
 
 import calculator.io.InputHandler;
 import calculator.io.OutputHandler;
+import calculator.model.Token;
 import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,17 +33,23 @@ public class Application {
 
             String strippedTokens = customPatternMatcher.group(2);
             String quotedDelimiter = Pattern.quote(delimiter);
-            String[] tokens = strippedTokens.split(quotedDelimiter);
-
+            List<Token> tokens = convertToTokens(strippedTokens, quotedDelimiter);
             int totalCost = calculateTotalCosts(tokens);
 
             OutputHandler.showCalculatedValue(totalCost);
             return;
         }
 
-        String[] tokens = userInput.split(COMPOSITE_DELIMITER);
+        List<Token> tokens = convertToTokens(userInput, COMPOSITE_DELIMITER);
+
         int totalCost = calculateTotalCosts(tokens);
         OutputHandler.showCalculatedValue(totalCost);
+    }
+
+    private static List<Token> convertToTokens(String strippedTokens, String quotedDelimiter) {
+        return Arrays.stream(strippedTokens.split(quotedDelimiter))
+                .map(Token::new)
+                .toList();
     }
 
     private static boolean doesDelimiterIsChar(String delimiter) {
@@ -52,31 +60,18 @@ public class Application {
         return delimiter.length() > 1;
     }
 
-    private static boolean doesDelimiterIsEmpty(String delimiter) {
-        return delimiter.isEmpty();
-    }
-
     private static boolean doesDelimiterIsCustom(Matcher customPatternMatcher) {
         return customPatternMatcher.matches();
     }
 
-    private static int calculateTotalCosts(String[] tokens) {
-        return Arrays.stream(tokens)
-                .filter(string -> !doesDelimiterIsEmpty(string))
-                .mapToInt(Application::parsePositiveInt)
+    private static int calculateTotalCosts(List<Token> tokens) {
+        return tokens.stream()
+                .mapToInt(Token::getCost)
                 .sum();
     }
 
-    private static int parsePositiveInt(String str) {
-        try {
-            int integer = Integer.parseInt(str);
-            if (integer < 0) {
-                throw new IllegalArgumentException("음수는 사용할 수 없습니다.");
-            }
-            return integer;
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("숫자만 사용할 수 있습니다.");
-        }
+    private static boolean doesDelimiterIsEmpty(String delimiter) {
+        return delimiter.isEmpty();
     }
 
 }
@@ -94,9 +89,6 @@ public class Application {
 //        String userInput = "//\\n1123412341231234";
 //        String userInput = "s";
 //        String userInput = "1,2v3,4";
-
-
-
 
 //package calculator;
 //
@@ -188,12 +180,6 @@ public class Application {
 //    }
 //
 //}
-
-
-
-
-
-
 
 //package calculator;
 //
