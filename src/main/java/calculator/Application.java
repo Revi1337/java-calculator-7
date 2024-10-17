@@ -1,6 +1,7 @@
 package calculator;
 
-import camp.nextstep.edu.missionutils.Console;
+import calculator.io.InputHandler;
+import calculator.io.OutputHandler;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -11,8 +12,8 @@ public class Application {
     private static final String COMPOSITE_DELIMITER = "[:,]";
 
     public static void main(String[] args) {
-        System.out.println("덧셈할 문자열을 입력해 주세요.");
-        String userInput = Console.readLine();
+        OutputHandler.showEntryMessage();
+        String userInput = InputHandler.getUserInput();
 
         Matcher customPatternMatcher = Pattern.compile(CUSTOM_DELIMITER).matcher(userInput);
         if (doesDelimiterIsCustom(customPatternMatcher)) {
@@ -32,15 +33,15 @@ public class Application {
             String quotedDelimiter = Pattern.quote(delimiter);
             String[] tokens = strippedTokens.split(quotedDelimiter);
 
-            int sum = calculateTotalCosts(tokens);
+            int totalCost = calculateTotalCosts(tokens);
 
-            System.out.println("결과 : " + sum);
+            OutputHandler.showCalculatedValue(totalCost);
             return;
         }
 
         String[] tokens = userInput.split(COMPOSITE_DELIMITER);
-        int sum = calculateTotalCosts(tokens);
-        System.out.println("결과 : " + sum);
+        int totalCost = calculateTotalCosts(tokens);
+        OutputHandler.showCalculatedValue(totalCost);
     }
 
     private static boolean doesDelimiterIsChar(String delimiter) {
