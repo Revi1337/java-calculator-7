@@ -4,7 +4,6 @@ import camp.nextstep.edu.missionutils.Console;
 import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import net.bytebuddy.pool.TypePool.Resolution.Illegal;
 
 public class Application {
 
@@ -13,53 +12,58 @@ public class Application {
 
     public static void main(String[] args) {
         System.out.println("덧셈할 문자열을 입력해 주세요.");
-//        String userInput = "1,2:3";
-//        String userInput = "1,2,3";
-//        String userInput = "16";
-//        String userInput = "";
-//        String userInput = "//;\\n1";
-//        String userInput = "//^\\n1^2^3";
-//        String userInput = "//;\\n1;1;2;3;4;1;2;3;4;1;2;3;1;2;3;4";
-//        String userInput = "//s\\n1s1ssss2s3s4s1s2s3s4s1s2s3s1s2s3s4";
-
-//        String userInput = "//;o\\n1;1;2;3;4;1;2;3;4;1;2;3;1;2;3;4";
-//        String userInput = "//\\n1123412341231234";
-//        String userInput = "s";
-//        String userInput = "1,2v3,4";
         String userInput = Console.readLine();
 
         Matcher customPatternMatcher = Pattern.compile(CUSTOM_DELIMITER).matcher(userInput);
-        boolean isCustomPatternMatch = customPatternMatcher.matches();
-        if (isCustomPatternMatch) {
+        if (doesDelimiterIsCustom(customPatternMatcher)) {
             String delimiter = customPatternMatcher.group(1);
-            String quotedDelimiter = Pattern.quote(delimiter);
-            if (delimiter.isEmpty()) {
+
+            if (doesDelimiterIsEmpty(delimiter)) {
                 throw new IllegalArgumentException("커스텀 구분자가 필요합니다.");
             }
-            if (delimiter.length() > 1) {
+            if (doesDelimiterIsValid(delimiter)) {
                 throw new IllegalArgumentException("커스텀 구분자의 길이는 1 이어야 합니다.");
             }
-            if (Character.isDigit(delimiter.charAt(0))) {
+            if (doesDelimiterIsChar(delimiter)) {
                 throw new IllegalArgumentException("커스텀 구분자는 문자여야 합니다.");
             }
+
             String strippedTokens = customPatternMatcher.group(2);
+            String quotedDelimiter = Pattern.quote(delimiter);
             String[] tokens = strippedTokens.split(quotedDelimiter);
 
-            int sum = Arrays.stream(tokens)
-                    .filter(string -> !string.isEmpty())
-                    .mapToInt(Application::parsePositiveInt)
-                    .sum();
+            int sum = calculateTotalCosts(tokens);
 
             System.out.println("결과 : " + sum);
             return;
         }
 
         String[] tokens = userInput.split(COMPOSITE_DELIMITER);
-        int sum = Arrays.stream(tokens)
-                .filter(string -> !string.isEmpty())
+        int sum = calculateTotalCosts(tokens);
+        System.out.println("결과 : " + sum);
+    }
+
+    private static boolean doesDelimiterIsChar(String delimiter) {
+        return Character.isDigit(delimiter.charAt(0));
+    }
+
+    private static boolean doesDelimiterIsValid(String delimiter) {
+        return delimiter.length() > 1;
+    }
+
+    private static boolean doesDelimiterIsEmpty(String delimiter) {
+        return delimiter.isEmpty();
+    }
+
+    private static boolean doesDelimiterIsCustom(Matcher customPatternMatcher) {
+        return customPatternMatcher.matches();
+    }
+
+    private static int calculateTotalCosts(String[] tokens) {
+        return Arrays.stream(tokens)
+                .filter(string -> !doesDelimiterIsEmpty(string))
                 .mapToInt(Application::parsePositiveInt)
                 .sum();
-        System.out.println("결과 : " + sum);
     }
 
     private static int parsePositiveInt(String str) {
@@ -75,6 +79,20 @@ public class Application {
     }
 
 }
+
+//        String userInput = "1,2:3";
+//        String userInput = "1,2,3";
+//        String userInput = "16";
+//        String userInput = "";
+//        String userInput = "//;\\n1";
+//        String userInput = "//^\\n1^2^3";
+//        String userInput = "//;\\n1;1;2;3;4;1;2;3;4;1;2;3;1;2;3;4";
+//        String userInput = "//s\\n1s1ssss2s3s4s1s2s3s4s1s2s3s1s2s3s4";
+
+//        String userInput = "//;o\\n1;1;2;3;4;1;2;3;4;1;2;3;1;2;3;4";
+//        String userInput = "//\\n1123412341231234";
+//        String userInput = "s";
+//        String userInput = "1,2v3,4";
 
 
 
