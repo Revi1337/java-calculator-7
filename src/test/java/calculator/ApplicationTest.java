@@ -1,13 +1,193 @@
 package calculator;
 
-import camp.nextstep.edu.missionutils.test.NsTest;
-import org.junit.jupiter.api.Test;
-
 import static camp.nextstep.edu.missionutils.test.Assertions.assertSimpleTest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import camp.nextstep.edu.missionutils.test.NsTest;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
 class ApplicationTest extends NsTest {
+
+    @Nested
+    class HappyTest {
+
+        @Test
+        void 콤마_구분자를_사용하면_성공한다() {
+            assertSimpleTest(() -> {
+                run("1,2,3");
+                assertThat(output()).contains("결과 : 6");
+            });
+        }
+
+        @Test
+        void 콜론_구분자를_사용하면_성공한다() {
+            assertSimpleTest(() -> {
+                run("1:2:3");
+                assertThat(output()).contains("결과 : 6");
+            });
+        }
+
+        @Test
+        void 콜론과_콤마를_혼용하면_성공한다() {
+            assertSimpleTest(() -> {
+                run("1,2:3");
+                assertThat(output()).contains("결과 : 6");
+            });
+        }
+
+        @Test
+        void 각_양수의_길이가_길어도_성공한다() {
+            assertSimpleTest(() -> {
+                run("11,22:333");
+                assertThat(output()).contains("결과 : 366");
+            });
+        }
+
+        @Test
+        void 구분자가_맨앞에_있어도_성공한다() {
+            assertSimpleTest(() -> {
+                run(",16");
+                assertThat(output()).contains("결과 : 16");
+            });
+        }
+
+        @Test
+        void 구분자가_맨뒤에_있어도_성공한다() {
+            assertSimpleTest(() -> {
+                run("16,");
+                assertThat(output()).contains("결과 : 16");
+            });
+        }
+
+        @Test
+        void 숫자와_구분자_모두_없어도_성공한다() {
+            assertSimpleTest(() -> {
+                run("\n");
+                assertThat(output()).contains("결과 : 0");
+            });
+        }
+
+        @Test
+        void 커스텀_구분자는_성공한다() {
+            assertSimpleTest(() -> {
+                run("//;\\n1;2;3");
+                assertThat(output()).contains("결과 : 6");
+            });
+        }
+
+        @Test
+        void 커스텀_구분자의_길이가_2_이상이어도_성공한다() {
+            assertSimpleTest(() -> {
+                run("//&=;\\n1&=;1&=;&=;&=;&=;2&=;3&=;4&=;1&=;2&=;3&=;4&=;1&=;2&=;3&=;1&=;2&=;3&=;4");
+                assertThat(output()).contains("결과 : 37");
+            });
+        }
+
+        @Test
+        void 커스텀_구분자가_정규식_문자여도_성공한다() {
+            assertSimpleTest(() -> {
+                run("//^\\n1^2^3");
+                assertThat(output()).contains("결과 : 6");
+            });
+        }
+    }
+
+    @Nested
+    class EdgeCase {
+
+        @Test
+        void 양수가_아니면_실패한다1() {
+            assertSimpleTest(() ->
+                    assertThatThrownBy(() -> runException("-1,2,3"))
+                            .isInstanceOf(IllegalArgumentException.class)
+                            .hasMessage("구분자를 제외한 문자에서 음수는 허용되지 않습니다.")
+            );
+        }
+
+        @Test
+        void 양수가_아니면_실패한다2() {
+            assertSimpleTest(() ->
+                    assertThatThrownBy(() -> runException("1,2:-3"))
+                            .isInstanceOf(IllegalArgumentException.class)
+                            .hasMessage("구분자를 제외한 문자에서 음수는 허용되지 않습니다.")
+            );
+        }
+
+        @Test
+        void 양수가_아니면_실패한다3() {
+            assertSimpleTest(() ->
+                    assertThatThrownBy(() -> runException("1,2:3,0"))
+                            .isInstanceOf(IllegalArgumentException.class)
+                            .hasMessage("구분자를 제외한 문자에서 음수는 허용되지 않습니다.")
+            );
+        }
+
+        @Test
+        void 구분자가_없으면_실패한다1() {
+            assertSimpleTest(() ->
+                    assertThatThrownBy(() -> runException("//\\n1123412341231234"))
+                            .isInstanceOf(IllegalArgumentException.class)
+                            .hasMessage("구분자는 공백일 수 없습니다.")
+            );
+        }
+
+        @Test
+        void 구분자가_없으면_실패한다2() {
+            assertSimpleTest(() ->
+                    assertThatThrownBy(() -> runException("s"))
+                            .isInstanceOf(IllegalArgumentException.class)
+                            .hasMessage("구분자는 공백일 수 없습니다.")
+            );
+        }
+
+        @Test
+        void 문자열이_없으면_실패한다1() {
+            assertSimpleTest(() ->
+                    assertThatThrownBy(() -> runException(","))
+                            .isInstanceOf(IllegalArgumentException.class)
+                            .hasMessage("문자열은 공백일 수 없습니다.")
+            );
+        }
+
+        @Test
+        void 문자열이_없으면_실패한다2() {
+            assertSimpleTest(() ->
+                    assertThatThrownBy(() -> runException(",:"))
+                            .isInstanceOf(IllegalArgumentException.class)
+                            .hasMessage("문자열은 공백일 수 없습니다.")
+            );
+        }
+
+        @Test
+        void 문자열이_없으면_실패한다3() {
+            assertSimpleTest(() ->
+                    assertThatThrownBy(() -> runException("//4\\n"))
+                            .isInstanceOf(IllegalArgumentException.class)
+                            .hasMessage("문자열은 공백일 수 없습니다.")
+            );
+        }
+
+        @Test
+        void 커스텀_구분자가_숫자면_실패한다() {
+            assertSimpleTest(() ->
+                    assertThatThrownBy(() -> runException("//4\\n1123412341231234"))
+                            .isInstanceOf(IllegalArgumentException.class)
+                            .hasMessage("커스텀 구분자는 숫자일 수 없습니다.")
+            );
+        }
+
+        @Test
+        void 기본_구분자_외_다른_구분자가_들어가면_실패한다() {
+            assertSimpleTest(() ->
+                    assertThatThrownBy(() -> runException("1,2v3:4"))
+                            .isInstanceOf(IllegalArgumentException.class)
+                            .hasMessage("구분자와 동일하지 않은 문자는 지원하지 않습니다.")
+            );
+        }
+    }
+
     @Test
     void 커스텀_구분자_사용() {
         assertSimpleTest(() -> {
@@ -19,8 +199,8 @@ class ApplicationTest extends NsTest {
     @Test
     void 예외_테스트() {
         assertSimpleTest(() ->
-            assertThatThrownBy(() -> runException("-1,2,3"))
-                .isInstanceOf(IllegalArgumentException.class)
+                assertThatThrownBy(() -> runException("-1,2,3"))
+                        .isInstanceOf(IllegalArgumentException.class)
         );
     }
 

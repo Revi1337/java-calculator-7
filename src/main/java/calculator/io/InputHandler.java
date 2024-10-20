@@ -1,11 +1,14 @@
 package calculator.io;
 
+import calculator.model.UserInput;
 import camp.nextstep.edu.missionutils.Console;
 
 public class InputHandler {
 
-    public String getUserInput() {
-        return Console.readLine();
-    }
+    private final InputSeparator inputSeparator = new InputSeparator();
 
+    public UserInput getUserInput() {
+        String input = Console.readLine();
+        return inputSeparator.separate(input);
+    }
 }
